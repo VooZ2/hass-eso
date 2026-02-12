@@ -1,3 +1,11 @@
+## Esminiai pakeitimai/patobulinimai lyginant su originalu [algirdasc/hass-eso](https://github.com/algirdasc/hass-eso)
+
+- **Duomenys iš ESO dabar traukiami tik kartą per dieną, 6:00 ryto.** 
+  Nesiunčiamos užklausos po Home Assistant restarto! 
+- **Jei nepavyksta prisijungti prie ESO (login klaida):**  
+  automatiškai bandys tik vieną kartą po 3 val. (login retry).
+- **Daug aiškesnis/diagnostinis logavimas — visada matosi, kodėl duomenys negauti/kodėl laukiamas retry.**
+
 # Your support
 This open-source project is developed in my free time. 
 Your donation would help me dedicate more time and resources to improve project, add new features, fix bugs, 
