@@ -120,7 +120,7 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
                 ),
             )
 
-    async_track_time_change(hass, async_import_generation, hour=10, minute=40, second=0)
+    async_track_time_change(hass, async_import_generation, hour=10, minute=50, second=0)
 
     return True
 
