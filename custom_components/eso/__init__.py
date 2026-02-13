@@ -124,7 +124,7 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
                 ),
             )
 
-    async_track_time_change(hass, async_import_generation, hour=10, minute=40, second=0)
+    async_track_time_change(hass, async_import_generation, hour=7, minute=00, second=0)
 
     async def _started_import(event: Event) -> None:
         await asyncio.sleep(45)
