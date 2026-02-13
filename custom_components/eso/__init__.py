@@ -93,7 +93,7 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
             _LOGGER.error("Fetch failed, postponing fetch for next day")
 
     # Nėra fetch po restart, tik pagal grafiką
-    async_track_time_change(hass, async_import_generation, hour=6, minute=00, second=0)
+    async_track_time_change(hass, async_import_generation, hour=11, minute=00, second=0)
     return True
 
 async def async_insert_statistics(
@@ -113,7 +113,7 @@ async def async_insert_statistics(
         metadata = StatisticMetaData(
             has_mean=False,
             has_sum=True,
-            mean_type=None,
+            mean_type="sum",
             name=f"{obj[CONF_NAME]} ({data_type})",
             source=DOMAIN,
             statistic_id=statistic_id,
@@ -170,7 +170,7 @@ async def async_insert_cost_statistics(
     cost_metadata = StatisticMetaData(
         has_mean=False,
         has_sum=True,
-        mean_type=None,
+        mean_type="sum",
         name=f"{obj[CONF_NAME]} ({CONF_COST})",
         source=DOMAIN,
         statistic_id=f"{DOMAIN}:energy_{CONF_COST}_{obj[CONF_ID]}",
