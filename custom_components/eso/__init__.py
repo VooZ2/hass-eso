@@ -124,7 +124,7 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
                 ),
             )
 
-    async_track_time_change(hass, async_import_generation, hour=7, minute=00, second=0)
+    async_track_time_change(hass, async_import_generation, hour=10, minute=40, second=0)
 
     async def _started_import(event: Event) -> None:
         await asyncio.sleep(30)
@@ -149,6 +149,7 @@ async def async_insert_statistics(hass: HomeAssistant, obj: dict, dataset: dict)
 
         generation_data = dataset[mapped_type]
 
+        # Pašalinta device_class, nes StatisticsMeta jos nepriima
         metadata = StatisticMetaData(
             has_mean=False,
             has_sum=True,
@@ -156,7 +157,6 @@ async def async_insert_statistics(hass: HomeAssistant, obj: dict, dataset: dict)
             source=DOMAIN,
             statistic_id=statistic_id,
             unit_of_measurement=UnitOfEnergy.KILO_WATT_HOUR,
-            device_class="energy",
         )
 
         statistics = await _async_get_statistics(hass, statistic_id, generation_data)
@@ -236,6 +236,7 @@ async def async_insert_cost_statistics(
 
     statistic_id = f"{DOMAIN}:energy_{CONF_COST}_{obj[CONF_ID]}"
 
+    # Pašalinta device_class, nes StatisticsMeta jos nepriima
     cost_metadata = StatisticMetaData(
         has_mean=False,
         has_sum=True,
@@ -243,7 +244,6 @@ async def async_insert_cost_statistics(
         source=DOMAIN,
         statistic_id=statistic_id,
         unit_of_measurement=obj[CONF_PRICE_CURRENCY],
-        device_class="monetary",
     )
 
     cost_stats: list[StatisticData] = []
@@ -290,7 +290,7 @@ async def _async_generate_price_dict(
         {"state"},
     )
 
-    price_stats = stat.get(obj[CONF_PRICE_ENTITY])
+    price_stats = stats.get(obj[CONF_PRICE_ENTITY])
 
     if not price_stats:
         return {}
