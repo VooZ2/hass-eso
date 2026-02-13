@@ -1,7 +1,7 @@
 {
   "domain": "eso",
   "name": "ESO Energy Consumption",
-  "version": "1.0.0",
+  "version": "1.0.2",
   "documentation": "https://github.com/VooZ2/hass-eso",
   "issue_tracker": "https://github.com/VooZ2/hass-eso/issues",
   "dependencies": [],
