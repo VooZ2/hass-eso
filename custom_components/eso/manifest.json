@@ -1,10 +1,11 @@
 {
   "domain": "eso",
   "name": "ESO Energy Consumption",
-  "documentation": "https://github.com/algirdasc/hass-eso",
+  "version": "1.0.0",
+  "documentation": "https://github.com/VooZ2/hass-eso",
+  "issue_tracker": "https://github.com/VooZ2/hass-eso/issues",
   "dependencies": [],
-  "codeowners": ["@algirdasc"],
-  "issue_tracker": "https://github.com/algirdasc/hass-eso/issues",
-  "requirements": ["requests"],
-  "version": "1.0.0"
+  "codeowners": ["@VooZ2"],
+  "requirements": ["requests>=2.0.0"],
+  "iot_class": "cloud_polling"
 }
