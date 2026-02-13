@@ -93,7 +93,7 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
             _LOGGER.error("Fetch failed, postponing fetch for next day")
 
     # Nėra fetch po restart, tik pagal grafiką
-    async_track_time_change(hass, async_import_generation, hour=10, minute=00, second=0)
+    async_track_time_change(hass, async_import_generation, hour=10, minute=30, second=0)
     return True
 
 async def async_insert_statistics(
