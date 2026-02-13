@@ -5,7 +5,11 @@ import homeassistant.helpers.config_validation as cv
 import voluptuous as vol
 
 from homeassistant.components.recorder import get_instance
-from homeassistant.components.recorder.models import StatisticMetaData, StatisticData
+from homeassistant.components.recorder.models import (
+    StatisticMetaData, 
+    StatisticData,
+    StatisticMeanType
+)
 from homeassistant.components.recorder.statistics import (
     async_add_external_statistics,
     statistics_during_period,
@@ -124,7 +128,8 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
                 ),
             )
 
-    async_track_time_change(hass, async_import_generation, hour=7, minute=00, second=0)
+    # Duomenų rinkimas 07:00 val. ryto
+    async_track_time_change(hass, async_import_generation, hour=7, minute=0, second=0)
 
     async def _started_import(event: Event) -> None:
         await asyncio.sleep(45)
@@ -149,8 +154,10 @@ async def async_insert_statistics(hass: HomeAssistant, obj: dict, dataset: dict)
 
         generation_data = dataset[mapped_type]
 
+        # Naudojamas StatisticMeanType.NONE saugumui užtikrinti
         metadata = StatisticMetaData(
             has_mean=False,
+            mean_type=StatisticMeanType.NONE,
             has_sum=True,
             name=f"{obj[CONF_NAME]} ({data_type})",
             source=DOMAIN,
@@ -237,6 +244,7 @@ async def async_insert_cost_statistics(
 
     cost_metadata = StatisticMetaData(
         has_mean=False,
+        mean_type=StatisticMeanType.NONE,
         has_sum=True,
         name=f"{obj[CONF_NAME]} ({CONF_COST})",
         source=DOMAIN,
