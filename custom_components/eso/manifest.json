@@ -4,7 +4,7 @@
   "documentation": "https://github.com/VooZ2/hass-eso",
   "dependencies": ["recorder"],
   "codeowners": ["@VooZ2"],
-  "requirements": ["requests==2.31.0"],
+  "requirements": ["requests>=2.31.0"],
   "version": "1.1.0",
   "iot_class": "cloud_polling"
 }
