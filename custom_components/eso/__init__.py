@@ -124,12 +124,10 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
                 ),
             )
 
-    # Suplanuotas kasdienis atnaujinimas 10:40 val.
     async_track_time_change(hass, async_import_generation, hour=7, minute=00, second=0)
 
-    # Automatinis atnaujinimas paleidus Home Assistant
     async def _started_import(event: Event) -> None:
-        await asyncio.sleep(30)  # Vėlavimas, kad Recorder spėtų pasileisti
+        await asyncio.sleep(30)
         _LOGGER.info("HA startavo: pradedamas ESO duomenų importas po restarto")
         await async_import_generation(dt_util.now())
 
@@ -151,7 +149,6 @@ async def async_insert_statistics(hass: HomeAssistant, obj: dict, dataset: dict)
 
         generation_data = dataset[mapped_type]
 
-        # Pašalintas neteisingas mean_type, pridėta device_class
         metadata = StatisticMetaData(
             has_mean=False,
             has_sum=True,
@@ -162,12 +159,12 @@ async def async_insert_statistics(hass: HomeAssistant, obj: dict, dataset: dict)
             device_class="energy",
         )
 
-        statistics = await _async_get_statistics(hass, metadata, generation_data)
+        statistics = await _async_get_statistics(hass, statistic_id, generation_data)
         async_add_external_statistics(hass, metadata, statistics)
 
 
 async def _async_get_statistics(
-    hass: HomeAssistant, metadata: StatisticMetaData, generation_data: dict
+    hass: HomeAssistant, statistic_id: str, generation_data: dict
 ) -> list[StatisticData]:
 
     statistics: list[StatisticData] = []
@@ -177,7 +174,7 @@ async def _async_get_statistics(
         dt_object = datetime.fromtimestamp(ts, tz=dt_util.get_time_zone("Europe/Vilnius"))
 
         if sum_ is None:
-            sum_ = await get_previous_sum(hass, metadata.statistic_id, dt_object)
+            sum_ = await get_previous_sum(hass, statistic_id, dt_object)
 
         sum_ += kwh
 
@@ -210,7 +207,7 @@ async def get_previous_sum(
         {"sum"},
     )
 
-    if statistic_id not in stat:
+    if statistic_id not in stat or not stat[statistic_id]:
         return 0.0
 
     return stat[statistic_id][0].get("sum", 0.0)
@@ -237,13 +234,14 @@ async def async_insert_cost_statistics(
     if not prices:
         return
 
-    # Pašalintas neteisingas mean_type, pridėta device_class
+    statistic_id = f"{DOMAIN}:energy_{CONF_COST}_{obj[CONF_ID]}"
+
     cost_metadata = StatisticMetaData(
         has_mean=False,
         has_sum=True,
         name=f"{obj[CONF_NAME]} ({CONF_COST})",
         source=DOMAIN,
-        statistic_id=f"{DOMAIN}:energy_{CONF_COST}_{obj[CONF_ID]}",
+        statistic_id=statistic_id,
         unit_of_measurement=obj[CONF_PRICE_CURRENCY],
         device_class="monetary",
     )
@@ -261,7 +259,7 @@ async def async_insert_cost_statistics(
 
         if cost_sum_ is None:
             cost_sum_ = await get_previous_sum(
-                hass, cost_metadata.statistic_id, start_time
+                hass, statistic_id, start_time
             )
 
         cost_sum_ += cost
