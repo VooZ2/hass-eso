@@ -17,9 +17,10 @@ from homeassistant.const import (
     CONF_USERNAME,
     CONF_PASSWORD,
     UnitOfEnergy,
+    EVENT_HOMEASSISTANT_STARTED,
 )
 
-from homeassistant.core import HomeAssistant
+from homeassistant.core import HomeAssistant, Event
 from homeassistant.helpers.event import async_track_time_change
 from homeassistant.helpers.typing import ConfigType
 from homeassistant.util import dt as dt_util
@@ -89,6 +90,7 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
         all_failed = False
 
         try:
+            _LOGGER.info("Logging in to ESO...")
             await hass.async_add_executor_job(client.login)
         except Exception as e:
             _LOGGER.error("ESO login error: %s", e)
@@ -96,6 +98,7 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
 
         for obj in config[DOMAIN][CONF_OBJECTS]:
             try:
+                _LOGGER.info("Fetching ESO dataset [%s]", obj[CONF_NAME])
                 await hass.async_add_executor_job(
                     client.fetch_dataset,
                     obj[CONF_ID],
@@ -113,14 +116,24 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
                 await async_insert_cost_statistics(hass, obj, dataset)
 
         if all_failed and not retry:
+            _LOGGER.warning("ESO fetch failed, will retry in %s seconds", RETRY_DELAY_SECONDS)
             hass.loop.call_later(
                 RETRY_DELAY_SECONDS,
                 lambda: asyncio.create_task(
-                    async_import_generation(datetime.now(), retry=True)
+                    async_import_generation(dt_util.now(), retry=True)
                 ),
             )
 
-    async_track_time_change(hass, async_import_generation, hour=10, minute=50, second=0)
+    # Suplanuotas kasdienis atnaujinimas 10:40 val.
+    async_track_time_change(hass, async_import_generation, hour=7, minute=00, second=0)
+
+    # Automatinis atnaujinimas paleidus Home Assistant
+    async def _started_import(event: Event) -> None:
+        await asyncio.sleep(30)  # Vėlavimas, kad Recorder spėtų pasileisti
+        _LOGGER.info("HA startavo: pradedamas ESO duomenų importas po restarto")
+        await async_import_generation(dt_util.now())
+
+    hass.bus.async_listen_once(EVENT_HOMEASSISTANT_STARTED, _started_import)
 
     return True
 
@@ -138,6 +151,7 @@ async def async_insert_statistics(hass: HomeAssistant, obj: dict, dataset: dict)
 
         generation_data = dataset[mapped_type]
 
+        # Pašalintas neteisingas mean_type, pridėta device_class
         metadata = StatisticMetaData(
             has_mean=False,
             has_sum=True,
@@ -149,7 +163,6 @@ async def async_insert_statistics(hass: HomeAssistant, obj: dict, dataset: dict)
         )
 
         statistics = await _async_get_statistics(hass, metadata, generation_data)
-
         async_add_external_statistics(hass, metadata, statistics)
 
 
@@ -188,6 +201,7 @@ async def get_previous_sum(
 
     stat = await get_instance(hass).async_add_executor_job(
         statistics_during_period,
+        hass,
         start,
         end,
         {statistic_id},
@@ -223,6 +237,7 @@ async def async_insert_cost_statistics(
     if not prices:
         return
 
+    # Pašalintas neteisingas mean_type, pridėta device_class
     cost_metadata = StatisticMetaData(
         has_mean=False,
         has_sum=True,
@@ -268,6 +283,7 @@ async def _async_generate_price_dict(
 
     stat = await get_instance(hass).async_add_executor_job(
         statistics_during_period,
+        hass,
         time_from,
         time_to,
         {obj[CONF_PRICE_ENTITY]},
