@@ -127,7 +127,7 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
     async_track_time_change(hass, async_import_generation, hour=10, minute=40, second=0)
 
     async def _started_import(event: Event) -> None:
-        await asyncio.sleep(30)
+        await asyncio.sleep(45)
         _LOGGER.info("HA startavo: pradedamas ESO duomenų importas po restarto")
         await async_import_generation(dt_util.now())
 
@@ -149,7 +149,6 @@ async def async_insert_statistics(hass: HomeAssistant, obj: dict, dataset: dict)
 
         generation_data = dataset[mapped_type]
 
-        # Pašalinta device_class, nes StatisticsMeta jos nepriima
         metadata = StatisticMetaData(
             has_mean=False,
             has_sum=True,
@@ -236,7 +235,6 @@ async def async_insert_cost_statistics(
 
     statistic_id = f"{DOMAIN}:energy_{CONF_COST}_{obj[CONF_ID]}"
 
-    # Pašalinta device_class, nes StatisticsMeta jos nepriima
     cost_metadata = StatisticMetaData(
         has_mean=False,
         has_sum=True,
@@ -290,7 +288,7 @@ async def _async_generate_price_dict(
         {"state"},
     )
 
-    price_stats = stats.get(obj[CONF_PRICE_ENTITY])
+    price_stats = stat.get(obj[CONF_PRICE_ENTITY])
 
     if not price_stats:
         return {}
